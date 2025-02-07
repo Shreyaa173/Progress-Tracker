@@ -681,16 +681,18 @@ const fetchProblems = async () => {
   ];
 };
 
+const STORAGE_KEY = "leetcode-tracker-data";
+
 const getDifficultyColor = (difficulty) => {
   switch (difficulty.toLowerCase()) {
     case "easy":
-      return "bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-200";
+      return "bg-emerald-700/20 text-emerald-500 border-emerald-500 hover:bg-emerald-700/30";
     case "medium":
-      return "bg-amber-100 text-amber-700 border-amber-200 hover:bg-amber-200";
+      return "bg-amber-700/20 text-amber-500 border-amber-500 hover:bg-amber-700/30";
     case "hard":
-      return "bg-rose-100 text-rose-700 border-rose-200 hover:bg-rose-200";
+      return "bg-red-700/20 text-red-500 border-red-500 hover:bg-red-700/30";
     default:
-      return "bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200";
+      return "bg-gray-700/20 text-gray-400 border-gray-400 hover:bg-gray-700/30";
   }
 };
 
@@ -698,35 +700,49 @@ const getStatusIcon = (status) => {
   const normalizedStatus = status.trim().toLowerCase();
   switch (normalizedStatus) {
     case "completed":
-      return <CheckCircle className="w-5 h-5 text-emerald-600" />;
+      return <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-500" />;
     case "in progress":
-      return <Clock className="w-5 h-5 text-amber-600" />;
+      return <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500" />;
     case "marked for revision":
-      return <Flag className="w-5 h-5 text-rose-600" />;
+      return <Flag className="w-4 h-4 sm:w-5 sm:h-5 text-red-500" />;
     default:
-      return <AlertCircle className="w-5 h-5 text-gray-600" />;
+      return <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />;
   }
 };
 
 const StatCard = ({ title, value, icon: Icon, color, trend }) => (
   <Card
-    className={`border-l-4 ${color} shadow-sm transition-all duration-300 hover:scale-105 hover:shadow-md bg-white`}
+    className={`bg-[#053F3C] border-l-4 ${color} shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl`}
   >
-    <CardContent className="p-6">
+    <CardContent className="p-4 sm:p-6">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm font-medium text-gray-600">{title}</p>
+          <p className="text-xs sm:text-sm font-medium text-gray-300">
+            {title}
+          </p>
           <div className="flex items-baseline gap-2">
-            <p className="text-3xl font-bold mt-1 text-gray-800">{value}</p>
+            <p className="text-xl sm:text-3xl font-bold mt-1 text-white">
+              {value}
+            </p>
             {trend && (
-              <span className="text-xs font-medium text-emerald-600">
+              <span className="text-xs font-medium text-emerald-500">
                 +{trend}%
               </span>
             )}
           </div>
         </div>
-        <div className={`p-3 rounded-full ${color.replace("border", "bg")}/10`}>
-          <Icon className={`w-6 h-6 ${color.replace("border", "text")}`} />
+        <div
+          className={`p-2 sm:p-3 rounded-full ${color.replace(
+            "border",
+            "bg"
+          )}/10`}
+        >
+          <Icon
+            className={`w-5 h-5 sm:w-6 sm:h-6 ${color.replace(
+              "border",
+              "text"
+            )}`}
+          />
         </div>
       </div>
     </CardContent>
@@ -742,101 +758,100 @@ const DaySection = ({ day, problems, onStatusChange }) => {
   }, [problems]);
 
   return (
-    <div className="main">
-      <div className="border rounded-lg mb-4 overflow-hidden bg-white shadow-sm">
-        <button
-          onClick={() => setIsExpanded(!isExpanded)}
-          className="w-full px-6 py-4 bg-gray-50 flex items-center justify-between hover:bg-gray-100 transition-colors duration-200"
-        >
-          <div className="flex flex-col sm:flex-row items-center sm:gap-4 gap-2">
-            <span className="text-base sm:text-lg font-medium text-gray-800">
-              Day {day}
-            </span>
-            <div className="flex items-center w-full sm:w-auto gap-2">
-              <div className="h-2 w-full sm:w-64  bg-gray-200 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-blue-500 transition-all duration-300"
-                  style={{ width: `${completionRate}%` }}
-                />
-              </div>
-              <span className="text-xs sm:text-sm text-gray-600">
-                {completionRate}%
-              </span>
+    <div className="border border-[#042A2B] rounded-lg mb-4 overflow-hidden bg-[#053F3C] shadow-lg">
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="w-full px-3 sm:px-6 py-3 sm:py-4 bg-[#053F3C] flex items-center justify-between hover:bg-[#064E4A] transition-colors duration-200"
+      >
+        <div className="flex items-center gap-2 sm:gap-4 w-full">
+          <span className="text-base sm:text-lg font-medium text-white whitespace-nowrap">
+            Day {day}
+          </span>
+          <div className="flex items-center gap-2 flex-1">
+            <div className="h-2 w-16 sm:w-32 md:w-48 lg:w-64 xl:w-250 bg-[#042A2B] rounded-full overflow-hidden">
+              <div
+                className="h-full bg-amber-500 transition-all duration-300"
+                style={{ width: `${completionRate}%` }}
+              />
             </div>
+            <span className="text-xs sm:text-sm text-gray-300 whitespace-nowrap">
+              {completionRate}%
+            </span>
           </div>
-
-          {isExpanded ? (
-            <ChevronDown className="w-5 h-5 text-gray-600" />
-          ) : (
-            <ChevronRight className="w-5 h-5 text-gray-600" />
-          )}
-        </button>
-
-        {isExpanded && (
-          <div className="border-t">
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
-                    Problem
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
-                    Difficulty
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
-                    Status
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {problems.map((problem, index) => (
-                  <tr
-                    key={index}
-                    className="hover:bg-gray-50 transition-colors duration-200"
-                  >
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <a
-                        href={problem.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm font-medium text-gray-900 hover:text-blue-600 transition-colors"
-                      >
-                        {problem.problem}
-                      </a>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <Badge
-                        className={`${getDifficultyColor(problem.difficulty)}`}
-                      >
-                        {problem.difficulty}
-                      </Badge>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        {getStatusIcon(problem.status)}
-                        <select
-                          value={problem.status}
-                          onChange={(e) =>
-                            onStatusChange(problem.day, index, e.target.value)
-                          }
-                          className="ml-2 bg-white border border-gray-300 rounded px-2 py-1 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        >
-                          <option value="not started">Not Started</option>
-                          <option value="completed">Completed</option>
-                          <option value="in progress">In Progress</option>
-                          <option value="marked for revision">
-                            Marked for Revision
-                          </option>
-                        </select>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        </div>
+        {isExpanded ? (
+          <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5 text-gray-300 ml-2" />
+        ) : (
+          <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-gray-300 ml-2" />
         )}
-      </div>
+      </button>
+
+      {isExpanded && (
+        <div className="border-t border-[#042A2B] overflow-x-auto">
+          <table className="w-full min-w-[640px]">
+            <thead className="bg-[#064E4A]">
+              <tr>
+                <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                  Problem
+                </th>
+                <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                  Difficulty
+                </th>
+                <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                  Status
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#042A2B]">
+              {problems.map((problem, index) => (
+                <tr
+                  key={index}
+                  className="hover:bg-[#064E4A] transition-colors duration-200"
+                >
+                  <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
+                    <a
+                      href={problem.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs sm:text-sm font-medium text-gray-200 hover:text-amber-500 transition-colors"
+                    >
+                      {problem.problem}
+                    </a>
+                  </td>
+                  <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
+                    <Badge
+                      className={`text-xs ${getDifficultyColor(
+                        problem.difficulty
+                      )}`}
+                    >
+                      {problem.difficulty}
+                    </Badge>
+                  </td>
+                  <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
+                    <div className="flex items-center">
+                      {getStatusIcon(problem.status)}
+                      <select
+                        value={problem.status}
+                        onChange={(e) =>
+                          onStatusChange(problem.day, index, e.target.value)
+                        }
+                        className="ml-2 text-xs sm:text-sm bg-[#064E4A] border border-[#042A2B] rounded px-2 py-1 text-gray-200 focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                      >
+                        <option value="not started">Not Started</option>
+                        <option value="completed">Completed</option>
+                        <option value="in progress">In Progress</option>
+                        <option value="marked for revision">
+                          Marked for Revision
+                        </option>
+                      </select>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 };
@@ -848,21 +863,40 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Load data from localStorage on initial render
   useEffect(() => {
-    const loadProblems = async () => {
+    const loadData = async () => {
       try {
         setLoading(true);
         setError(null);
+
+        // Try to get data from localStorage first
+        const savedData = localStorage.getItem(STORAGE_KEY);
+        if (savedData) {
+          setProblems(JSON.parse(savedData));
+          setLoading(false);
+          return;
+        }
+
+        // If no saved data, fetch from API
         const fetchedProblems = await fetchProblems();
         setProblems(fetchedProblems);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(fetchedProblems));
       } catch (err) {
         setError(err.message || "Failed to fetch problems");
       } finally {
         setLoading(false);
       }
     };
-    loadProblems();
+    loadData();
   }, []);
+
+  // Save to localStorage whenever problems change
+  useEffect(() => {
+    if (!loading && problems.length > 0) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(problems));
+    }
+  }, [problems, loading]);
 
   const handleStatusChange = (day, index, newStatus) => {
     setProblems(
@@ -913,11 +947,11 @@ const Home = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-[#042A2B] flex items-center justify-center">
         <div className="flex items-center gap-3">
-          <div className="w-3 h-3 bg-blue-500 rounded-full animate-bounce" />
-          <div className="w-3 h-3 bg-blue-500 rounded-full animate-bounce delay-100" />
-          <div className="w-3 h-3 bg-blue-500 rounded-full animate-bounce delay-200" />
+          <div className="w-3 h-3 bg-amber-500 rounded-full animate-bounce" />
+          <div className="w-3 h-3 bg-amber-500 rounded-full animate-bounce delay-100" />
+          <div className="w-3 h-3 bg-amber-500 rounded-full animate-bounce delay-200" />
         </div>
       </div>
     );
@@ -925,32 +959,32 @@ const Home = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center text-rose-600">
+      <div className="min-h-screen bg-[#042A2B] flex items-center justify-center text-red-500">
         Error: {error}
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen  bg-[#CEA07E]">
-      <div className="p-8 max-w-7xl mx-auto">
-        <Card className="mb-8 bg-white">
+    <div className="min-h-screen bg-[#042A2B]">
+      <div className="p-4 sm:p-8 max-w-7xl mx-auto">
+        <Card className="mb-6 sm:mb-8 bg-[#053F3C]">
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-3xl font-bold flex items-center gap-3 text-gray-800">
-                <Code2 className="w-8 h-8 text-blue-600" />
-                <span>LeetCode Progress Tracker</span>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <CardTitle className="text-xl sm:text-3xl font-bold flex items-center gap-2 sm:gap-3 text-gray-200">
+                <Code2 className="w-6 h-6 sm:w-8 sm:h-8 text-gray-200" />
+                <span className="text-gray-200">LeetCode Progress</span>
               </CardTitle>
-              <Badge className="px-4 py-1 bg-blue-100 text-blue-700 hover:bg-blue-200">
+              <Badge className="px-3 sm:px-4 py-1 bg-[#042A2B] text-amber-500 hover:bg-[#053F3C]">
                 Keep Coding!
               </Badge>
             </div>
           </CardHeader>
         </Card>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8 ">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
           <StatCard
-            title="Problems Completed"
+            title="Completed"
             value={stats.completed}
             icon={Award}
             color="border-emerald-500"
@@ -962,27 +996,27 @@ const Home = () => {
             color="border-amber-500"
           />
           <StatCard
-            title="Marked for Revision"
+            title="For Revision"
             value={stats.inReview}
             icon={Eye}
-            color="border-rose-500"
+            color="border-red-500"
           />
           <StatCard
-            title="Total Problems"
+            title="Total"
             value={stats.total}
             icon={Code2}
-            color="border-blue-500"
+            color="border-amber-500"
           />
         </div>
 
-        <Card className="bg-white">
+        <Card className="bg-[#053F3C] border-[#042A2B]">
           <CardHeader>
-            <div className="flex flex-col md:flex-row gap-4 justify-between">
+            <div className="flex flex-col gap-4">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <Input
                   placeholder="Search problems..."
-                  className="pl-9 max-w-md"
+                  className="pl-9 w-full bg-[#064E4A] border-[#042A2B] text-gray-200 placeholder-gray-400"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   aria-label="Search problems"
