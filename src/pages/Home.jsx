@@ -768,7 +768,7 @@ const DaySection = ({ day, problems, onStatusChange }) => {
             Day {day}
           </span>
           <div className="flex items-center gap-2 flex-1">
-            <div className="h-2 w-16 sm:w-32 md:w-48 lg:w-64 xl:w-250 bg-[#042A2B] rounded-full overflow-hidden">
+            <div className="h-2 w-48 sm:w-60 md:w-48 lg:w-120 xl:w-250 bg-[#042A2B] rounded-full overflow-hidden">
               <div
                 className="h-full bg-amber-500 transition-all duration-300"
                 style={{ width: `${completionRate}%` }}
