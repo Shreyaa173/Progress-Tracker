@@ -143,33 +143,29 @@ const SubtopicSection = ({ subtopic, problems, onStatusChange }) => {
         onClick={() => setIsExpanded(!isExpanded)}
         className="w-full px-3 sm:px-6 py-3 sm:py-4 bg-[#064E4A] flex items-center justify-between hover:bg-[#086B65] transition-colors duration-200"
       >
-        <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
+        <div className="flex items-center gap-2 sm:gap-4 w-full">
           <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500 flex-shrink-0" />
-          <span className="text-sm sm:text-base font-medium text-white truncate">
+          <span className="text-sm sm:text-base font-medium text-white whitespace-nowrap">
             {subtopic}
           </span>
-        </div>
-        
-        {/* Fixed width container for progress section */}
-        <div className="flex items-center gap-3 w-48 sm:w-60 justify-end">
-          <div className="w-28 sm:w-36 bg-[#042A2B] rounded-full h-2 overflow-hidden flex-shrink-0">
-            <div
-              className="h-full bg-amber-500 transition-all duration-300"
-              style={{
-                width: `${completionRate}%`,
-                minWidth: completionRate > 0 ? "3px" : "0",
-              }}
-            />
-          </div>
-          <span className="text-xs sm:text-sm text-gray-300 w-10 text-right">
-            {completionRate}%
-          </span>
-        </div>
+          <div className="flex items-center gap-2 flex-1">
+            {/* Fixed width progress bar for subtopics */}
+            <div className="progress-bar">
+              <div
+                className="h-full bg-amber-500 transition-all duration-300"
+                style={{ width: `${completionRate}%` }}
+              />
+            </div>
 
+            <span className="text-xs sm:text-sm text-gray-300 whitespace-nowrap">
+              {completionRate}%
+            </span>
+          </div>
+        </div>
         {isExpanded ? (
-          <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5 text-gray-300 ml-2 flex-shrink-0" />
+          <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5 text-gray-300 ml-2" />
         ) : (
-          <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-gray-300 ml-2 flex-shrink-0" />
+          <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-gray-300 ml-2" />
         )}
       </button>
 
@@ -231,26 +227,20 @@ const TopicSection = ({ topicName, subtopics, onStatusUpdate }) => {
         onClick={() => setIsExpanded(!isExpanded)}
         className="w-full px-4 sm:px-6 py-4 sm:py-5 bg-[#053F3C] flex items-center justify-between hover:bg-[#064E4A] transition-colors duration-200"
       >
-        <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+        <div className="flex items-center gap-3 sm:gap-4 w-full">
           <Calendar className="w-5 h-5 sm:w-6 sm:h-6 text-amber-500 flex-shrink-0" />
-          <span className="text-base sm:text-lg font-semibold text-white truncate">
+          <span className="text-base sm:text-lg font-semibold text-white whitespace-nowrap">
             {topicName}
           </span>
-        </div>
-        
-        {/* Fixed width container for progress section */}
-        <div className="flex items-center gap-4 w-64 sm:w-80 justify-end">
-          <div className="w-32 sm:w-44 bg-[#042A2B] rounded-full h-3 overflow-hidden flex-shrink-0">
-            <div
-              className="h-full bg-gradient-to-r from-amber-600 to-amber-400 transition-all duration-500"
-              style={{
-                width: `${topicStats.completionRate}%`,
-                minWidth: topicStats.completionRate > 0 ? "4px" : "0",
-              }}
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-sm sm:text-base text-gray-300 font-medium w-10 text-right">
+          <div className="flex items-center gap-3 flex-1">
+            {/* Fixed width progress bar for topics - same as subtopics */}
+            <div className="h-3 w-32 sm:w-48 md:w-64 lg:w-80 bg-[#042A2B] rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-amber-600 to-amber-400 transition-all duration-500"
+                style={{ width: `${topicStats.completionRate}%` }}
+              />
+            </div>
+            <span className="text-sm sm:text-base text-gray-300 whitespace-nowrap font-medium">
               {topicStats.completionRate}%
             </span>
             <span className="text-xs sm:text-sm text-gray-400 whitespace-nowrap">
@@ -258,9 +248,8 @@ const TopicSection = ({ topicName, subtopics, onStatusUpdate }) => {
             </span>
           </div>
         </div>
-        
-        <div className="flex items-center gap-2 ml-3 flex-shrink-0">
-          <Badge className="px-2 py-1 bg-[#042A2B] text-gray-300 text-xs whitespace-nowrap">
+        <div className="flex items-center gap-2 ml-3">
+          <Badge className="px-2 py-1 bg-[#042A2B] text-gray-300 text-xs">
             {topicStats.subtopicsCount} subtopics
           </Badge>
           {isExpanded ? (
@@ -439,10 +428,8 @@ const Home = () => {
           <CardHeader>
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <CardTitle className="text-xl sm:text-3xl font-bold flex items-center gap-2 sm:gap-3 text-gray-200">
-                <span className="text-gray-200 flex items-center gap-2 sm:gap-3"> 
-                  <Code2 className="w-6 h-6 sm:w-8 sm:h-8 text-gray-200" /> 
-                  DSA Topic Tracker
-                </span>
+                <Code2 className="w-6 h-6 sm:w-8 sm:h-8 text-gray-200" />
+                <span className="text-gray-200">DSA Topic Tracker</span>
               </CardTitle>
               <div className="flex items-center gap-2">
                 <button
