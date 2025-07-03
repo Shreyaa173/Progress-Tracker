@@ -23,12 +23,16 @@ import {
   ChevronRight,
   RefreshCw,
   BookOpen,
+  Star,
+  Filter,
+  X,
 } from "lucide-react";
 
 const STORAGE_KEY = "dsa-tracker-data";
 const DATA_VERSION_KEY = "dsa-tracker-version";
 const CURRENT_DATA_VERSION = "1.0";
 
+// Helper functions
 const getDifficultyColor = (difficulty) => {
   switch (difficulty.toLowerCase()) {
     case "easy":
@@ -86,17 +90,149 @@ const StatCard = ({ title, value, icon: Icon, color }) => (
   </Card>
 );
 
-const ProblemRow = ({ problem, onStatusChange }) => (
+const FilterDropdown = ({ filters, onFilterChange, onClearFilters }) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const filterOptions = [
+    { key: "starred", label: "Starred Questions", type: "checkbox" },
+    {
+      key: "status",
+      label: "Status",
+      type: "select",
+      options: [
+        { value: "", label: "All Status" },
+        { value: "completed", label: "Completed" },
+        { value: "revision", label: "Revision" },
+        { value: "not_started", label: "Not Started" },
+      ],
+    },
+    {
+      key: "difficulty",
+      label: "Difficulty",
+      type: "select",
+      options: [
+        { value: "", label: "All Difficulties" },
+        { value: "easy", label: "Easy" },
+        { value: "medium", label: "Medium" },
+        { value: "hard", label: "Hard" },
+      ],
+    },
+  ];
+
+  const activeFiltersCount = Object.values(filters).filter(
+    (v) => v && v !== ""
+  ).length;
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-2 px-3 py-2 bg-[#064E4A] border border-[#042A2B] rounded-md text-gray-200 hover:bg-[#086B65] transition-colors duration-200"
+      >
+        <Filter className="w-4 h-4" />
+        <span className="text-sm">Filters</span>
+        {activeFiltersCount > 0 && (
+          <Badge className="bg-amber-500 text-black text-xs px-1 py-0 min-w-[16px] h-4 flex items-center justify-center">
+            {activeFiltersCount}
+          </Badge>
+        )}
+      </button>
+
+      {isOpen && (
+        <div className="absolute right-0 mt-2 w-64 bg-[#053F3C] border border-[#042A2B] rounded-md shadow-lg z-10">
+          <div className="p-4 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-medium text-gray-200">Filters</h3>
+              <button
+                onClick={() => setIsOpen(false)}
+                className="text-gray-400 hover:text-gray-200"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {filterOptions.map((option) => (
+              <div key={option.key} className="space-y-2">
+                <label className="text-xs font-medium text-gray-300">
+                  {option.label}
+                </label>
+                {option.type === "checkbox" ? (
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={filters[option.key] || false}
+                      onChange={(e) =>
+                        onFilterChange(option.key, e.target.checked)
+                      }
+                      className="w-4 h-4 rounded border-gray-600 bg-[#064E4A] text-amber-500 focus:ring-amber-500 focus:ring-2"
+                    />
+                    <span className="text-sm text-gray-300">
+                      Show starred only
+                    </span>
+                  </label>
+                ) : (
+                  <select
+                    value={filters[option.key] || ""}
+                    onChange={(e) => onFilterChange(option.key, e.target.value)}
+                    className="w-full px-3 py-2 bg-[#064E4A] border border-[#042A2B] rounded text-gray-200 text-sm focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                  >
+                    {option.options.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+            ))}
+
+            <div className="pt-2 border-t border-[#042A2B]">
+              <button
+                onClick={onClearFilters}
+                className="w-full px-3 py-2 bg-[#042A2B] text-gray-300 rounded text-sm hover:bg-[#064E4A] transition-colors duration-200"
+              >
+                Clear All Filters
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const ProblemRow = ({
+  problem,
+  topicName,
+  subtopic,
+  onStatusChange,
+  onStarToggle,
+}) => (
   <tr className="hover:bg-[#086B65] transition-colors duration-200">
     <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
-      <a
-        href={problem.link || "#"}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="text-xs sm:text-sm font-medium text-gray-200 hover:text-amber-500 transition-colors"
-      >
-        {problem.problem}
-      </a>
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => onStarToggle(topicName, subtopic, problem)}
+          className="text-gray-400 hover:text-amber-500 transition-colors duration-200"
+          title={problem.starred ? "Unstar problem" : "Star problem"}
+        >
+          <Star
+            className={`w-4 h-4 ${
+              problem.starred
+                ? "fill-amber-500 text-amber-500"
+                : "text-gray-400"
+            }`}
+          />
+        </button>
+        <a
+          href={problem.link || "#"}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-xs sm:text-sm font-medium text-gray-200 hover:text-amber-500 transition-colors"
+        >
+          {problem.problem}
+        </a>
+      </div>
     </td>
     <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
       <Badge className={`text-xs ${getDifficultyColor(problem.difficulty)}`}>
@@ -108,7 +244,9 @@ const ProblemRow = ({ problem, onStatusChange }) => (
         {getStatusIcon(problem.status)}
         <select
           value={problem.status || ""}
-          onChange={(e) => onStatusChange(e.target.value)}
+          onChange={(e) =>
+            onStatusChange(topicName, subtopic, problem, e.target.value)
+          }
           className="ml-2 text-xs sm:text-sm bg-[#086B65] border border-[#042A2B] rounded px-2 py-1 text-gray-200 focus:ring-2 focus:ring-amber-500 focus:border-transparent"
         >
           <option value="">Not Started</option>
@@ -120,7 +258,13 @@ const ProblemRow = ({ problem, onStatusChange }) => (
   </tr>
 );
 
-const SubtopicSection = ({ subtopic, problems, onStatusChange }) => {
+const SubtopicSection = ({
+  topicName,
+  subtopic,
+  problems,
+  onStatusChange,
+  onStarToggle,
+}) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const completionRate = useMemo(() => {
@@ -134,7 +278,8 @@ const SubtopicSection = ({ subtopic, problems, onStatusChange }) => {
     const total = problems.length;
     const completed = problems.filter((p) => p.status === "completed").length;
     const revision = problems.filter((p) => p.status === "revision").length;
-    return { total, completed, revision };
+    const starred = problems.filter((p) => p.starred).length;
+    return { total, completed, revision, starred };
   }, [problems]);
 
   return (
@@ -145,23 +290,28 @@ const SubtopicSection = ({ subtopic, problems, onStatusChange }) => {
       >
         <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
           <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500 flex-shrink-0" />
-          <span className="text-sm sm:text-base font-medium text-white truncate">
+          <span className="text-xs sm:text-sm md:text-base font-medium text-white truncate">
             {subtopic}
           </span>
+          {stats.starred > 0 && (
+            <div className="flex items-center gap-1">
+              <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
+              <span className="text-xs text-amber-500">{stats.starred}</span>
+            </div>
+          )}
         </div>
-        
-        {/* Fixed width container for progress section */}
-        <div className="flex items-center gap-3 w-48 sm:w-60 justify-end">
-          <div className="w-28 sm:w-36 bg-[#042A2B] rounded-full h-2 overflow-hidden flex-shrink-0">
+
+        <div className="flex items-center gap-2 sm:gap-3 md:gap-4 w-32 sm:w-48 md:w-56 lg:w-60 xl:w-64 justify-end">
+          <div className="w-20 sm:w-28 md:w-32 lg:w-36 xl:w-40 bg-[#042A2B] rounded-full h-1.5 sm:h-2 md:h-2 overflow-hidden flex-shrink-0">
             <div
               className="h-full bg-amber-500 transition-all duration-300"
               style={{
                 width: `${completionRate}%`,
-                minWidth: completionRate > 0 ? "3px" : "0",
+                minWidth: completionRate > 0 ? "2px" : "0",
               }}
             />
           </div>
-          <span className="text-xs sm:text-sm text-gray-300 w-10 text-right">
+          <span className="text-xs sm:text-sm text-gray-300 w-8 sm:w-10 text-right">
             {completionRate}%
           </span>
         </div>
@@ -194,7 +344,10 @@ const SubtopicSection = ({ subtopic, problems, onStatusChange }) => {
                 <ProblemRow
                   key={index}
                   problem={problem}
-                  onStatusChange={(status) => onStatusChange(problem, status)}
+                  topicName={topicName}
+                  subtopic={subtopic}
+                  onStatusChange={onStatusChange}
+                  onStarToggle={onStarToggle}
                 />
               ))}
             </tbody>
@@ -205,7 +358,12 @@ const SubtopicSection = ({ subtopic, problems, onStatusChange }) => {
   );
 };
 
-const TopicSection = ({ topicName, subtopics, onStatusUpdate }) => {
+const TopicSection = ({
+  topicName,
+  subtopics,
+  onStatusChange,
+  onStarToggle,
+}) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const topicStats = useMemo(() => {
@@ -213,6 +371,7 @@ const TopicSection = ({ topicName, subtopics, onStatusUpdate }) => {
     const completed = allProblems.filter(
       (p) => p.status === "completed"
     ).length;
+    const starred = allProblems.filter((p) => p.starred).length;
     const total = allProblems.length;
     const completionRate =
       total > 0 ? Math.round((completed / total) * 100) : 0;
@@ -221,6 +380,7 @@ const TopicSection = ({ topicName, subtopics, onStatusUpdate }) => {
       completed,
       total,
       completionRate,
+      starred,
       subtopicsCount: Object.keys(subtopics).length,
     };
   }, [subtopics]);
@@ -231,26 +391,33 @@ const TopicSection = ({ topicName, subtopics, onStatusUpdate }) => {
         onClick={() => setIsExpanded(!isExpanded)}
         className="w-full px-4 sm:px-6 py-4 sm:py-5 bg-[#053F3C] flex items-center justify-between hover:bg-[#064E4A] transition-colors duration-200"
       >
-        <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
-          <Calendar className="w-5 h-5 sm:w-6 sm:h-6 text-amber-500 flex-shrink-0" />
-          <span className="text-base sm:text-lg font-semibold text-white truncate">
+        <div className="flex items-center gap-2 sm:gap-3 md:gap-4 flex-1 min-w-0">
+          <Calendar className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-amber-500 flex-shrink-0" />
+          <span className="text-sm sm:text-base md:text-lg font-semibold text-white truncate max-w-full">
             {topicName}
           </span>
+          {topicStats.starred > 0 && (
+            <div className="flex items-center gap-1">
+              <Star className="w-4 h-4 fill-amber-500 text-amber-500" />
+              <span className="text-sm text-amber-500">
+                {topicStats.starred}
+              </span>
+            </div>
+          )}
         </div>
-        
-        {/* Fixed width container for progress section */}
-        <div className="flex items-center gap-4 w-64 sm:w-80 justify-end">
-          <div className="w-32 sm:w-44 bg-[#042A2B] rounded-full h-3 overflow-hidden flex-shrink-0">
+
+        <div className="flex items-center gap-2 sm:gap-3 md:gap-4 lg:gap-5 w-40 sm:w-56 md:w-64 lg:w-72 xl:w-80 2xl:w-96 justify-end">
+          <div className="w-24 sm:w-32 md:w-36 lg:w-44 xl:w-48 2xl:w-56 bg-[#042A2B] rounded-full h-2 sm:h-2.5 md:h-3 overflow-hidden flex-shrink-0">
             <div
               className="h-full bg-gradient-to-r from-amber-600 to-amber-400 transition-all duration-500"
               style={{
                 width: `${topicStats.completionRate}%`,
-                minWidth: topicStats.completionRate > 0 ? "4px" : "0",
+                minWidth: topicStats.completionRate > 0 ? "3px" : "0",
               }}
             />
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-sm sm:text-base text-gray-300 font-medium w-10 text-right">
+          <div className="flex items-center gap-1 sm:gap-2">
+            <span className="text-xs sm:text-sm md:text-base text-gray-300 font-medium w-8 sm:w-10 text-right">
               {topicStats.completionRate}%
             </span>
             <span className="text-xs sm:text-sm text-gray-400 whitespace-nowrap">
@@ -258,7 +425,7 @@ const TopicSection = ({ topicName, subtopics, onStatusUpdate }) => {
             </span>
           </div>
         </div>
-        
+
         <div className="flex items-center gap-2 ml-3 flex-shrink-0">
           <Badge className="px-2 py-1 bg-[#042A2B] text-gray-300 text-xs whitespace-nowrap">
             {topicStats.subtopicsCount} subtopics
@@ -273,14 +440,14 @@ const TopicSection = ({ topicName, subtopics, onStatusUpdate }) => {
 
       {isExpanded && (
         <div className="border-t border-[#042A2B] px-4 sm:px-6 py-4 bg-[#042A2B]">
-          {Object.entries(subtopics).map(([subtopic, problems]) => (
+          {Object.entries(subtopics).map(([subtopicName, problems]) => (
             <SubtopicSection
-              key={subtopic}
-              subtopic={subtopic}
+              key={subtopicName}
+              topicName={topicName}
+              subtopic={subtopicName}
               problems={problems}
-              onStatusChange={(problem, status) =>
-                onStatusUpdate(topicName, subtopic, problem, status)
-              }
+              onStatusChange={onStatusChange}
+              onStarToggle={onStarToggle}
             />
           ))}
         </div>
@@ -294,6 +461,11 @@ const Home = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [filters, setFilters] = useState({
+    starred: false,
+    status: "",
+    difficulty: "",
+  });
 
   // Initialize data with localStorage or fallback to topics
   useEffect(() => {
@@ -303,16 +475,13 @@ const Home = () => {
         const savedVersion = localStorage.getItem(DATA_VERSION_KEY);
 
         if (savedData && savedVersion === CURRENT_DATA_VERSION) {
-          // Use saved data if version matches
           setData(JSON.parse(savedData));
         } else {
-          // Initialize with fresh data and merge any existing progress
           const freshData = JSON.parse(JSON.stringify(topics));
 
           if (savedData) {
             try {
               const oldData = JSON.parse(savedData);
-              // Merge old progress with new structure
               mergeProgress(freshData, oldData);
             } catch (error) {
               console.warn("Error merging old data:", error);
@@ -344,8 +513,13 @@ const Home = () => {
               const oldProblem = oldData[topicName][subtopicName].find(
                 (p) => p.problem === problem.problem
               );
-              if (oldProblem && oldProblem.status) {
-                problem.status = oldProblem.status;
+              if (oldProblem) {
+                if (oldProblem.status) {
+                  problem.status = oldProblem.status;
+                }
+                if (oldProblem.starred) {
+                  problem.starred = oldProblem.starred;
+                }
               }
             });
           }
@@ -384,13 +558,79 @@ const Home = () => {
     });
   };
 
+  // Debug version of handleStarToggle to identify the issue
+const handleStarToggle = (topic, subtopic, problem) => {
+  setData((prev) => {
+    if (!prev[topic] || !prev[topic][subtopic]) {
+      console.warn("Topic or subtopic not found:", topic, subtopic);
+      return prev;
+    }
+
+    const problems = prev[topic][subtopic];
+    const index = problems.findIndex((p) => p.problem === problem.problem);
+    
+    if (index === -1) {
+      console.warn("Problem not found:", problem.problem);
+      return prev;
+    }
+
+    // Create deep copy with proper immutability
+    return {
+      ...prev,
+      [topic]: {
+        ...prev[topic],
+        [subtopic]: prev[topic][subtopic].map((p, i) => 
+          i === index 
+            ? { ...p, starred: !p.starred }
+            : p
+        )
+      }
+    };
+  });
+};
+
+  const handleFilterChange = (key, value) => {
+    setFilters((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+  };
+
+  const clearFilters = () => {
+    setFilters({
+      starred: false,
+      status: "",
+      difficulty: "",
+    });
+  };
+
   const filteredData = data
     ? Object.entries(data).reduce((acc, [topic, subtopics]) => {
         const filteredSubtopics = {};
         for (const [subtopic, problems] of Object.entries(subtopics)) {
-          const filtered = problems.filter((p) =>
+          let filtered = problems.filter((p) =>
             p.problem.toLowerCase().includes(searchTerm.toLowerCase())
           );
+
+          // Apply filters
+          if (filters.starred) {
+            filtered = filtered.filter((p) => p.starred);
+          }
+
+          if (filters.status) {
+            if (filters.status === "not_started") {
+              filtered = filtered.filter((p) => !p.status || p.status === "");
+            } else {
+              filtered = filtered.filter((p) => p.status === filters.status);
+            }
+          }
+
+          if (filters.difficulty) {
+            filtered = filtered.filter(
+              (p) => p.difficulty.toLowerCase() === filters.difficulty
+            );
+          }
+
           if (filtered.length) {
             filteredSubtopics[subtopic] = filtered;
           }
@@ -404,7 +644,14 @@ const Home = () => {
 
   const stats = useMemo(() => {
     if (!data)
-      return { completed: 0, revision: 0, notStarted: 0, total: 0, topics: 0 };
+      return {
+        completed: 0,
+        revision: 0,
+        notStarted: 0,
+        total: 0,
+        topics: 0,
+        starred: 0,
+      };
 
     const allProblems = Object.values(data).flatMap((subtopics) =>
       Object.values(subtopics).flat()
@@ -415,6 +662,7 @@ const Home = () => {
       revision: allProblems.filter((p) => p.status === "revision").length,
       notStarted: allProblems.filter((p) => !p.status || p.status === "")
         .length,
+      starred: allProblems.filter((p) => p.starred).length,
       total: allProblems.length,
       topics: Object.keys(data).length,
     };
@@ -434,31 +682,38 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-[#042A2B]">
-      <div className="p-4 sm:p-8 max-w-7xl mx-auto">
+      <div className="p-3 sm:p-4 md:p-6 lg:p-8 max-w-7xl mx-auto">
         <Card className="mb-6 sm:mb-8 bg-[#053F3C]">
           <CardHeader>
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <CardTitle className="text-xl sm:text-3xl font-bold flex items-center gap-2 sm:gap-3 text-gray-200">
-                <span className="text-gray-200 flex items-center gap-2 sm:gap-3"> 
-                  <Code2 className="w-6 h-6 sm:w-8 sm:h-8 text-gray-200" /> 
+            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 lg:gap-6">
+              <CardTitle className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold flex items-center gap-2 sm:gap-3 text-gray-200">
+                <span className="text-gray-200 flex items-center gap-2 sm:gap-3">
+                  <Code2 className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 lg:w-8 lg:h-8 text-gray-200" />
                   DSA Topic Tracker
                 </span>
               </CardTitle>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2 md:gap-3">
                 <button
                   onClick={refreshData}
                   disabled={refreshing}
-                  className="px-3 py-1 bg-[#064E4A] hover:bg-[#086B65] text-amber-500 border border-amber-500/20 rounded-md transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-sm"
+                  className="px-2 sm:px-3 py-1 sm:py-1.5 bg-[#064E4A] hover:bg-[#086B65] text-amber-500 border border-amber-500/20 rounded-md transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 sm:gap-2 text-xs sm:text-sm"
                 >
                   <RefreshCw
-                    className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`}
+                    className={`w-3 h-3 sm:w-4 sm:h-4 ${
+                      refreshing ? "animate-spin" : ""
+                    }`}
                   />
-                  {refreshing ? "Refreshing..." : "Reset Progress"}
+                  <span className="hidden sm:inline">
+                    {refreshing ? "Refreshing..." : "Reset Progress"}
+                  </span>
+                  <span className="sm:hidden">
+                    {refreshing ? "..." : "Reset"}
+                  </span>
                 </button>
-                <Badge className="px-3 sm:px-4 py-1 bg-[#042A2B] text-amber-500 hover:bg-[#053F3C]">
+                <Badge className="px-2 sm:px-3 md:px-4 py-1 bg-[#042A2B] text-amber-500 hover:bg-[#053F3C] text-xs sm:text-sm">
                   {stats.topics} topics
                 </Badge>
-                <Badge className="px-3 sm:px-4 py-1 bg-[#042A2B] text-amber-500 hover:bg-[#053F3C]">
+                <Badge className="px-2 sm:px-3 md:px-4 py-1 bg-[#042A2B] text-amber-500 hover:bg-[#053F3C] text-xs sm:text-sm">
                   Keep Coding!
                 </Badge>
               </div>
@@ -466,7 +721,7 @@ const Home = () => {
           </CardHeader>
         </Card>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 md:gap-6 mb-6 sm:mb-8">
           <StatCard
             title="Completed"
             value={stats.completed}
@@ -489,13 +744,20 @@ const Home = () => {
             title="Total"
             value={stats.total}
             icon={Code2}
-            color="border-amber-500"
+            color="border-blue-500"
+          />
+          <StatCard
+            title="Starred"
+            value={stats.starred}
+            icon={Star}
+            color="border-green-500"
           />
         </div>
 
         <Card className="bg-[#053F3C] border-[#042A2B]">
           <CardHeader>
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              {/* Search */}
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <Input
@@ -506,17 +768,31 @@ const Home = () => {
                   aria-label="Search problems"
                 />
               </div>
+
+              {/* Filters */}
+              <FilterDropdown
+                filters={filters}
+                onFilterChange={handleFilterChange}
+                onClearFilters={clearFilters}
+              />
             </div>
           </CardHeader>
+
           <CardContent>
-            {Object.entries(filteredData).map(([topic, subtopics]) => (
-              <TopicSection
-                key={topic}
-                topicName={topic}
-                subtopics={subtopics}
-                onStatusUpdate={handleStatusChange}
-              />
-            ))}
+            {data &&
+              Object.entries(filteredData).map(([topic, subtopics]) => (
+                <TopicSection
+                  key={topic}
+                  topicName={topic}
+                  subtopics={subtopics}
+                  onStatusChange={(topicName, subtopicName, problem) =>
+                    handleStatusChange(topicName, subtopicName, problem)
+                  }
+                  onStarToggle={(topicName, subtopicName, problem) =>
+                    handleStarToggle(topicName, subtopicName, problem)
+                  }
+                />
+              ))}
           </CardContent>
         </Card>
       </div>
