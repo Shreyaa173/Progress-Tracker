@@ -243,7 +243,7 @@ const ProblemRow = ({
       <div className="flex items-center">
         {getStatusIcon(problem.status)}
         <select
-          value={problem.status || ""}
+          value={(problem?.status || "").toLowerCase()}
           onChange={(e) =>
             onStatusChange(topicName, subtopic, problem, e.target.value)
           }
@@ -548,46 +548,68 @@ const Home = () => {
 
   const handleStatusChange = (topic, subtopic, problem, newStatus) => {
     setData((prev) => {
-      const updated = { ...prev };
-      const problems = updated[topic][subtopic];
-      const index = problems.findIndex((p) => p.problem === problem.problem);
-      if (index !== -1) {
-        problems[index] = { ...problems[index], status: newStatus };
+      if (!prev[topic] || !prev[topic][subtopic]) {
+        console.warn("Topic or subtopic not found:", topic, subtopic);
+        return prev;
       }
-      return updated;
+
+      const problems = prev[topic][subtopic];
+      const index = problems.findIndex((p) => p.problem === problem.problem);
+
+      if (index === -1) {
+        console.warn("Problem not found:", problem.problem);
+        return prev;
+      }
+
+      const updatedProblems = prev[topic][subtopic].map((p, i) =>
+        i === index
+          ? {
+              ...p,
+              status:
+                typeof newStatus === "string" ? newStatus.toLowerCase() : "",
+            }
+          : p
+      );
+
+      console.log("Updating status for", problem.problem, "to", newStatus); // ✅ Debug
+      return {
+        ...prev,
+        [topic]: {
+          ...prev[topic],
+          [subtopic]: updatedProblems,
+        },
+      };
     });
   };
 
   // Debug version of handleStarToggle to identify the issue
-const handleStarToggle = (topic, subtopic, problem) => {
-  setData((prev) => {
-    if (!prev[topic] || !prev[topic][subtopic]) {
-      console.warn("Topic or subtopic not found:", topic, subtopic);
-      return prev;
-    }
-
-    const problems = prev[topic][subtopic];
-    const index = problems.findIndex((p) => p.problem === problem.problem);
-    
-    if (index === -1) {
-      console.warn("Problem not found:", problem.problem);
-      return prev;
-    }
-
-    // Create deep copy with proper immutability
-    return {
-      ...prev,
-      [topic]: {
-        ...prev[topic],
-        [subtopic]: prev[topic][subtopic].map((p, i) => 
-          i === index 
-            ? { ...p, starred: !p.starred }
-            : p
-        )
+  const handleStarToggle = (topic, subtopic, problem) => {
+    setData((prev) => {
+      if (!prev[topic] || !prev[topic][subtopic]) {
+        console.warn("Topic or subtopic not found:", topic, subtopic);
+        return prev;
       }
-    };
-  });
-};
+
+      const problems = prev[topic][subtopic];
+      const index = problems.findIndex((p) => p.problem === problem.problem);
+
+      if (index === -1) {
+        console.warn("Problem not found:", problem.problem);
+        return prev;
+      }
+
+      // Create deep copy with proper immutability
+      return {
+        ...prev,
+        [topic]: {
+          ...prev[topic],
+          [subtopic]: prev[topic][subtopic].map((p, i) =>
+            i === index ? { ...p, starred: !p.starred } : p
+          ),
+        },
+      };
+    });
+  };
 
   const handleFilterChange = (key, value) => {
     setFilters((prev) => ({
@@ -618,7 +640,7 @@ const handleStarToggle = (topic, subtopic, problem) => {
           }
 
           if (filters.status) {
-            if (filters.status === "not_started") {
+            if (filters.status === "") {
               filtered = filtered.filter((p) => !p.status || p.status === "");
             } else {
               filtered = filtered.filter((p) => p.status === filters.status);
@@ -785,8 +807,18 @@ const handleStarToggle = (topic, subtopic, problem) => {
                   key={topic}
                   topicName={topic}
                   subtopics={subtopics}
-                  onStatusChange={(topicName, subtopicName, problem) =>
-                    handleStatusChange(topicName, subtopicName, problem)
+                  onStatusChange={(
+                    topicName,
+                    subtopicName,
+                    problem,
+                    newStatus
+                  ) =>
+                    handleStatusChange(
+                      topicName,
+                      subtopicName,
+                      problem,
+                      newStatus
+                    )
                   }
                   onStarToggle={(topicName, subtopicName, problem) =>
                     handleStarToggle(topicName, subtopicName, problem)
